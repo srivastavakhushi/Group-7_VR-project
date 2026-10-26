@@ -372,9 +372,20 @@ namespace CrimeSceneVR.Interaction
                     ? _desktopCamera.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0f))
                     : new Ray(transform.position, transform.forward);
 
-                if (Physics.Raycast(ray, out RaycastHit hit, 40f, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore))
+                RaycastHit[] hits = Physics.RaycastAll(ray, 40f, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
+                if (hits != null && hits.Length > 0)
                 {
-                    var evidence = hit.collider.GetComponentInParent<EvidenceObject>();
+                    Array.Sort(hits, (a, b) => a.distance.CompareTo(b.distance));
+                    EvidenceObject evidence = null;
+                    for (int i = 0; i < hits.Length; i++)
+                    {
+                        var ev = hits[i].collider.GetComponentInParent<EvidenceObject>();
+                        if (ev != null && hits[i].distance <= hits[0].distance + 1.0f)
+                        {
+                            evidence = ev;
+                            break;
+                        }
+                    }
                     if (evidence != null)
                     {
                         _evidenceInteraction.SelectEvidence(evidence);
@@ -395,9 +406,21 @@ namespace CrimeSceneVR.Interaction
                 if (_evidenceInteraction.SelectedEvidence != null && _desktopCamera != null)
                 {
                     Ray ray = _desktopCamera.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0f));
-                    if (Physics.Raycast(ray, out RaycastHit hit, 40f, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore))
+                    RaycastHit[] hits = Physics.RaycastAll(ray, 40f, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
+                    if (hits != null && hits.Length > 0)
                     {
-                        _evidenceManager?.TryTag(_evidenceInteraction.SelectedEvidence, hit.point);
+                        Array.Sort(hits, (a, b) => a.distance.CompareTo(b.distance));
+                        RaycastHit chosenHit = hits[0];
+                        for (int i = 0; i < hits.Length; i++)
+                        {
+                            var ev = hits[i].collider.GetComponentInParent<EvidenceObject>();
+                            if (ev != null && hits[i].distance <= hits[0].distance + 1.0f)
+                            {
+                                chosenHit = hits[i];
+                                break;
+                            }
+                        }
+                        _evidenceManager?.TryTag(_evidenceInteraction.SelectedEvidence, chosenHit.point);
                     }
                 }
             }

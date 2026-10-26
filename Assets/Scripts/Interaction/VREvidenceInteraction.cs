@@ -120,14 +120,31 @@ namespace CrimeSceneVR.Interaction
                 Physics.SyncTransforms();
 
             Ray ray = new Ray(origin.position, origin.forward);
-            bool hasHit = Physics.Raycast(ray, out hit, _maxRayDistance, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
+            RaycastHit[] hits = Physics.RaycastAll(ray, _maxRayDistance, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
+            if (hits == null || hits.Length == 0)
+                return false;
 
-            if (hasHit && hit.collider != null)
+            Array.Sort(hits, (a, b) => a.distance.CompareTo(b.distance));
+
+            // Check if any hit belongs to an EvidenceObject (root or child collider)
+            for (int i = 0; i < hits.Length; i++)
             {
-                evidence = hit.collider.GetComponentInParent<EvidenceObject>();
+                var ev = hits[i].collider.GetComponentInParent<EvidenceObject>();
+                if (ev != null)
+                {
+                    // Prioritize evidence if it is the closest hit or within 1.0m of the leading surface
+                    if (hits[i].distance <= hits[0].distance + 1.0f)
+                    {
+                        hit = hits[i];
+                        evidence = ev;
+                        return true;
+                    }
+                }
             }
 
-            return hasHit;
+            hit = hits[0];
+            evidence = hit.collider.GetComponentInParent<EvidenceObject>();
+            return true;
         }
 
         private void UpdateHoverState(EvidenceObject newHover)

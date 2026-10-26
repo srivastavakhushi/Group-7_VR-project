@@ -81,7 +81,10 @@ namespace CrimeSceneVR.Editor
                 if (!EditorApplication.isPlayingOrWillChangePlaymode && !Application.isPlaying)
                 {
                     EditorSceneManager.MarkSceneDirty(activeScene);
-                    EditorSceneManager.SaveOpenScenes();
+                    if (force)
+                    {
+                        EditorSceneManager.SaveOpenScenes();
+                    }
                 }
                 Debug.Log("[VRRigSetup] Cleaned up temporary DesktopDebugRig from CrimeScene.unity.");
             }
@@ -96,7 +99,10 @@ namespace CrimeSceneVR.Editor
                 if (!EditorApplication.isPlayingOrWillChangePlaymode && !Application.isPlaying)
                 {
                     EditorSceneManager.MarkSceneDirty(activeScene);
-                    EditorSceneManager.SaveOpenScenes();
+                    if (force)
+                    {
+                        EditorSceneManager.SaveOpenScenes();
+                    }
                 }
                 allRigRefs = UnityEngine.Object.FindObjectsByType<VRRigReferences>(FindObjectsSortMode.None);
             }
@@ -140,12 +146,11 @@ namespace CrimeSceneVR.Editor
                     if (!EditorApplication.isPlayingOrWillChangePlaymode && !Application.isPlaying)
                     {
                         EditorSceneManager.MarkSceneDirty(activeScene);
-                        EditorSceneManager.SaveOpenScenes();
                     }
                 }
 
                 // Ensure Research Systems (SessionManager, Telemetry, Timeline, Exporter) exist
-                EnsureResearchManagers(activeScene);
+                EnsureResearchManagers(activeScene, save: false);
 
                 Debug.Log("[VRRigSetup] Meta XR VR Rig is already configured in CrimeScene.unity.");
                 return true;
@@ -302,10 +307,10 @@ namespace CrimeSceneVR.Editor
             }
 
             // Ensure Research Systems (SessionManager, Telemetry, Timeline, Exporter) exist
-            EnsureResearchManagers(activeScene);
+            EnsureResearchManagers(activeScene, save: force);
 
-            // 9. Save scene
-            if (!EditorApplication.isPlayingOrWillChangePlaymode && !Application.isPlaying)
+            // 9. Save scene only if explicitly forced
+            if (force && !EditorApplication.isPlayingOrWillChangePlaymode && !Application.isPlaying)
             {
                 EditorUtility.SetDirty(rigGo);
                 if (evidenceManager != null) EditorUtility.SetDirty(evidenceManager);
@@ -317,7 +322,7 @@ namespace CrimeSceneVR.Editor
             return true;
         }
 
-        private static bool EnsureLocomotionComponents(GameObject rigGo, VRRigReferences rigRef, CrimeSceneEvidenceManager evidenceManager)
+        private static bool EnsureLocomotionComponents(GameObject rigGo, VRRigReferences rigRef, CrimeSceneEvidenceManager evidenceManager, bool save = false)
         {
             bool changed = false;
 
@@ -357,7 +362,7 @@ namespace CrimeSceneVR.Editor
             loco.Configure(rigRef, evidenceManager);
             rigRef.ResolveReferences();
 
-            EnsureBathroomDoorOpen();
+            EnsureBathroomDoorOpen(save);
 
             if (changed && !EditorApplication.isPlayingOrWillChangePlaymode && !Application.isPlaying)
             {
@@ -367,7 +372,7 @@ namespace CrimeSceneVR.Editor
             return changed;
         }
 
-        private static void EnsureBathroomDoorOpen()
+        private static void EnsureBathroomDoorOpen(bool save = false)
         {
             var doorRoot = GameObject.Find("FOB_LOD/Doors/Door_Room_LOD (2)");
             if (doorRoot == null)
@@ -396,9 +401,12 @@ namespace CrimeSceneVR.Editor
                         if (doorRoot.scene.IsValid() && doorRoot.scene.isLoaded)
                         {
                             EditorSceneManager.MarkSceneDirty(doorRoot.scene);
-                            EditorSceneManager.SaveScene(doorRoot.scene);
+                            if (save)
+                            {
+                                EditorSceneManager.SaveScene(doorRoot.scene);
+                            }
                         }
-                        Debug.Log("[VRRigSetup] Bathroom door 'Door_Room_LOD (2)' set to open position (0, 90, 0) and scene saved.");
+                        Debug.Log("[VRRigSetup] Bathroom door 'Door_Room_LOD (2)' set to open position (0, 90, 0).");
                     }
                     else
                     {
@@ -408,7 +416,7 @@ namespace CrimeSceneVR.Editor
             }
         }
 
-        private static void EnsureResearchManagers(Scene activeScene)
+        private static void EnsureResearchManagers(Scene activeScene, bool save = false)
         {
             if (EditorApplication.isPlayingOrWillChangePlaymode || EditorApplication.isPlaying)
             {
@@ -425,7 +433,10 @@ namespace CrimeSceneVR.Editor
                 researchGo.AddComponent<CrimeSceneVR.Export.ResearchDataExporter>();
                 EditorUtility.SetDirty(researchGo);
                 EditorSceneManager.MarkSceneDirty(activeScene);
-                EditorSceneManager.SaveOpenScenes();
+                if (save)
+                {
+                    EditorSceneManager.SaveOpenScenes();
+                }
                 Debug.Log("[VRRigSetup] Added [ResearchSystem] (SessionManager, TelemetryCollector, TimelineManager, ResearchDataExporter) to CrimeScene.unity.");
             }
         }

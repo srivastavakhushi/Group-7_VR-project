@@ -197,13 +197,33 @@ public class EvidenceInteraction : MonoBehaviour
 
     bool SelectFromRay(Vector2 screenPosition)
     {
-        if (!TryRaycast(screenPosition, out RaycastHit hit))
+        if (viewCamera == null)
         {
             ClearSelection();
             return false;
         }
 
-        EvidenceObject evidence = hit.collider.GetComponentInParent<EvidenceObject>();
+        Ray ray = viewCamera.ScreenPointToRay(screenPosition);
+        RaycastHit[] hits = Physics.RaycastAll(ray, maxRayDistance, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
+        if (hits == null || hits.Length == 0)
+        {
+            ClearSelection();
+            return false;
+        }
+
+        Array.Sort(hits, (a, b) => a.distance.CompareTo(b.distance));
+
+        EvidenceObject evidence = null;
+        for (int i = 0; i < hits.Length; i++)
+        {
+            var ev = hits[i].collider.GetComponentInParent<EvidenceObject>();
+            if (ev != null && hits[i].distance <= hits[0].distance + 1.0f)
+            {
+                evidence = ev;
+                break;
+            }
+        }
+
         if (evidence == null)
         {
             ClearSelection();
@@ -220,7 +240,24 @@ public class EvidenceInteraction : MonoBehaviour
             return false;
 
         Ray ray = viewCamera.ScreenPointToRay(screenPosition);
-        return Physics.Raycast(ray, out hit, maxRayDistance, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
+        RaycastHit[] hits = Physics.RaycastAll(ray, maxRayDistance, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore);
+        if (hits == null || hits.Length == 0)
+            return false;
+
+        Array.Sort(hits, (a, b) => a.distance.CompareTo(b.distance));
+
+        for (int i = 0; i < hits.Length; i++)
+        {
+            var ev = hits[i].collider.GetComponentInParent<EvidenceObject>();
+            if (ev != null && hits[i].distance <= hits[0].distance + 1.0f)
+            {
+                hit = hits[i];
+                return true;
+            }
+        }
+
+        hit = hits[0];
+        return true;
     }
 
     void UpdateNavigation(Keyboard keyboard, Mouse mouse, bool pointerOverUi)
