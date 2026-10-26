@@ -87,7 +87,6 @@ namespace CrimeSceneVR.Analytics
             "EV-002", // 2. Weapon
             "EV-003", // 3. Blood-spatter pattern
             "EV-004", // 4. Footwear impression
-            "EV-005", // 5. Broken glass
             "EV-006", // 6. Mobile phone
             "EV-007", // 7. Bloodied object
             "EV-008"  // 8. Trace evidence
