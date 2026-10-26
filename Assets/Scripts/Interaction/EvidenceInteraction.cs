@@ -33,6 +33,11 @@ public class EvidenceInteraction : MonoBehaviour
 
     public EvidenceObject SelectedEvidence => selected;
     public CrimeSceneEvidenceManager EvidenceManager => evidenceManager;
+    public bool EnableDesktopNavigation
+    {
+        get => enableDesktopNavigation;
+        set => enableDesktopNavigation = value;
+    }
 
     public void Configure(CrimeSceneEvidenceManager manager, Camera camera)
     {
@@ -43,6 +48,12 @@ public class EvidenceInteraction : MonoBehaviour
 
     void Awake()
     {
+        // When DesktopTestingRig is present, let it handle CharacterController physics navigation
+        if (GetComponent<CrimeSceneVR.Interaction.DesktopTestingRig>() != null)
+        {
+            enableDesktopNavigation = false;
+        }
+
         ResolveReferences(logErrors: false);
     }
 

@@ -14,6 +14,7 @@ namespace CrimeSceneVR.Editor
     {
         private const string ResultsFilePath = "test_results.txt";
 
+        // Trigger test execution on domain reload
         static ForensicTestExecutor()
         {
             EditorApplication.delayCall += () =>

@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -19,7 +19,12 @@ public class DoorMech : MonoBehaviour
 		
 	void OnTriggerStay(Collider col)
 	{
-		if(col.gameObject.tag == ("Player") && Input.GetKeyDown(KeyCode.E))
+#if ENABLE_INPUT_SYSTEM
+		bool ePressed = UnityEngine.InputSystem.Keyboard.current != null && UnityEngine.InputSystem.Keyboard.current.eKey.wasPressedThisFrame;
+#else
+		bool ePressed = Input.GetKeyDown(KeyCode.E);
+#endif
+		if(col.gameObject.tag == ("Player") && ePressed)
 		{
 			if (!doorBool)
 				doorBool = true;

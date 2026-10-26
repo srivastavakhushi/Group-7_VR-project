@@ -29,11 +29,10 @@
       "url": "https://packages.unity.com"
     },
     "com.meta.xr.sdk.audio": {
-      "version": "85.0.0",
-      "depth": 1,
-      "source": "registry",
-      "dependencies": {},
-      "url": "https://packages.unity.com"
+      "version": "file:com.meta.xr.sdk.audio",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
     },
     "com.meta.xr.sdk.core": {
       "version": "207.0.1",

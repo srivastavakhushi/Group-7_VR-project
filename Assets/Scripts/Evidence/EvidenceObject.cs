@@ -119,6 +119,12 @@ public class EvidenceObject : MonoBehaviour
 
     void OnValidate()
     {
+#if UNITY_EDITOR
+        // Skip validation on prefab assets in project / persistent assets to avoid false duplicates against scene instances
+        if (UnityEditor.EditorUtility.IsPersistent(this) || UnityEditor.PrefabUtility.IsPartOfPrefabAsset(this))
+            return;
+#endif
+
         if (!string.IsNullOrWhiteSpace(evidenceId))
         {
             evidenceId = evidenceId.Trim();
@@ -135,10 +141,6 @@ public class EvidenceObject : MonoBehaviour
         if (Application.isPlaying || groundTruthLockedForSession)
             return;
 
-#if UNITY_EDITOR
-        if (UnityEditor.EditorUtility.IsPersistent(this) || UnityEditor.PrefabUtility.IsPartOfPrefabAsset(this))
-            return;
-#endif
         groundTruthWorldPosition = transform.position;
         groundTruthCaptured = true;
     }
@@ -149,7 +151,19 @@ public class EvidenceObject : MonoBehaviour
         for (int i = 0; i < others.Length; i++)
         {
             EvidenceObject other = others[i];
-            if (other == this || other.evidenceId != evidenceId)
+            if (other == null || other == this || other.gameObject == gameObject || other.GetInstanceID() == GetInstanceID())
+                continue;
+
+#if UNITY_EDITOR
+            // Ignore prefab assets or objects not in the same scene
+            if (UnityEditor.EditorUtility.IsPersistent(other) || UnityEditor.PrefabUtility.IsPartOfPrefabAsset(other))
+                continue;
+
+            if (other.gameObject.scene != gameObject.scene)
+                continue;
+#endif
+
+            if (other.evidenceId != evidenceId)
                 continue;
 
             Debug.LogError($"Forensic: duplicate evidence ID '{evidenceId}' on '{name}' and '{other.name}'.", this);

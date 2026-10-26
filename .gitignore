@@ -48,3 +48,8 @@ InitTestScene*.unity*.meta
 /[Aa]ssets/[Aa]ddressable[Aa]ssets[Dd]ata/*/*.bin*
 /[Aa]ssets/[Ss]treamingAssets/aa.meta
 /[Aa]ssets/[Ss]treamingAssets/aa/*
+
+# Build output and local artifacts
+build_result.txt
+quest/
+New folder/

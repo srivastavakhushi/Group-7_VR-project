@@ -10,6 +10,7 @@ namespace CrimeSceneVR.Core
     /// - Person 3: Player position/rotation telemetry and tracking loggers.
     /// </summary>
     [DisallowMultipleComponent]
+    [ExecuteAlways]
     [DefaultExecutionOrder(-100)]
     [AddComponentMenu("Crime Scene VR/VR Rig References")]
     public class VRRigReferences : MonoBehaviour
@@ -25,7 +26,7 @@ namespace CrimeSceneVR.Core
                 }
                 return _instance;
             }
-            private set => _instance = value;
+            set => _instance = value;
         }
 
         [Header("Primary Tracking Anchors")]
@@ -65,14 +66,15 @@ namespace CrimeSceneVR.Core
         public Transform RightControllerAnchor => _rightControllerAnchor;
 
         public Camera MainCamera => _mainCamera != null ? _mainCamera : ResolveMainCamera();
+        public void SetMainCamera(Camera camera) => _mainCamera = camera;
         public CharacterController CharacterController => _characterController;
         public OVRCameraRig OVRCameraRig => _ovrCameraRig;
         public VRLocomotionController LocomotionController => _locomotionController;
 
         // Convenient Telemetry & Interaction Accessors
-        public Vector3 HeadPosition => _centerEyeAnchor != null ? _centerEyeAnchor.position : transform.position;
-        public Quaternion HeadRotation => _centerEyeAnchor != null ? _centerEyeAnchor.rotation : transform.rotation;
-        public Vector3 HeadForward => _centerEyeAnchor != null ? _centerEyeAnchor.forward : transform.forward;
+        public Vector3 HeadPosition => _mainCamera != null ? _mainCamera.transform.position : (_centerEyeAnchor != null ? _centerEyeAnchor.position : transform.position);
+        public Quaternion HeadRotation => _mainCamera != null ? _mainCamera.transform.rotation : (_centerEyeAnchor != null ? _centerEyeAnchor.rotation : transform.rotation);
+        public Vector3 HeadForward => _mainCamera != null ? _mainCamera.transform.forward : (_centerEyeAnchor != null ? _centerEyeAnchor.forward : transform.forward);
 
         public Vector3 LeftHandPosition => _leftHandAnchor != null ? _leftHandAnchor.position : transform.position;
         public Quaternion LeftHandRotation => _leftHandAnchor != null ? _leftHandAnchor.rotation : transform.rotation;
@@ -94,6 +96,14 @@ namespace CrimeSceneVR.Core
             }
 
             ResolveReferences();
+        }
+
+        private void OnDestroy()
+        {
+            if (_instance == this)
+            {
+                _instance = null;
+            }
         }
 
         private void OnEnable()
@@ -127,6 +137,11 @@ namespace CrimeSceneVR.Core
 
         public void ResolveReferences()
         {
+            if (_instance == null || _instance == this)
+            {
+                _instance = this;
+            }
+
             if (_rigTransform == null) _rigTransform = transform;
             if (_ovrCameraRig == null) _ovrCameraRig = GetComponent<OVRCameraRig>();
             if (_characterController == null) _characterController = GetComponent<CharacterController>();
